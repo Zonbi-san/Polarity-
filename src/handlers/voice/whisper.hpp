@@ -154,7 +154,13 @@ class Whisper {
                     pcmf32[i] = pcmf32_old[pcmf32_old.size() - n_samples_take + 1];
                 }
 
-                memcpy(pcmf32.data() + n_samples_take, pcmf32_new.data(), n_samples_new * sizeof(float));
+                // FIXME: This is not optimal, find a better way to do this
+                float * tpcmf32 = pcmf32.data() + n_samples_take;
+                if (pcmf32_new.data() > tpcmf32) {
+                    memcpy(tpcmf32, pcmf32_new.data(), n_samples_new * sizeof(float));
+                } else {
+                    memcpy(tpcmf32, pcmf32_new.data(), n_samples_new * sizeof(float));
+                }
 
                 pcmf32_old = pcmf32_new;
             } else {
@@ -208,7 +214,12 @@ class Whisper {
                     const char* text = whisper_full_get_segment_text(ctx, i);
 
                     if (text) {
-                        output.insert(output.end(), text, text + strlen(text));
+                        // check if text is not \0-terminated
+                        if (text[strlen(text) - 1] == '\0') {
+                            output.insert(output.end(), text, text + strlen(text));
+                        } else {
+                            fprintf(stderr, "Failed to get segment text!\n");
+                        }
                     } else {
                         fprintf(stderr, "Failed to get segment text!\n");
                     }

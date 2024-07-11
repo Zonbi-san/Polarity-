@@ -42,6 +42,17 @@ std::string NED::detectEmotion(cv::VideoCapture camera) {
     }
 
     while (camera.read(frame)) {
+		// check the buffer for the next frame
+		if (frame.empty()) {
+			break;
+		}
+
+		// Buffer Boundary checks!
+		if (frame.cols > 1920 || frame.rows > 1080) {
+			break;
+		}
+
+
 		ImageSmoothing::smooth(frame);
 
         faces.clear();

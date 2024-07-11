@@ -158,13 +158,26 @@ void audio_async::callback(uint8_t * stream, int len) {
         if (m_audio_pos + n_samples > m_audio.size()) {
             const size_t n0 = m_audio.size() - m_audio_pos;
 
-            memcpy(&m_audio[m_audio_pos], stream, n0 * sizeof(float));
-            memcpy(&m_audio[0], stream + n0 * sizeof(float), (n_samples - n0) * sizeof(float));
-
+            // FIXME: Most likely not optimal, find a cleaner way to do this
+            if (n_samples - n0 > m_audio.size()) {
+                fprintf(stderr, "%s: buffer overflow detected, skipping copy operation\n", __func__);
+                return;
+            } else {
+                memcpy(&m_audio[m_audio_pos], stream, n0 * sizeof(float));
+                memcpy(&m_audio[0], stream + n0 * sizeof(float), (n_samples - n0) * sizeof(float));
+            }
+            
             m_audio_pos = (m_audio_pos + n_samples) % m_audio.size();
             m_audio_len = m_audio.size();
         } else {
-            memcpy(&m_audio[m_audio_pos], stream, n_samples * sizeof(float));
+
+            // FIXME: Most likely not optimal, find a cleaner way to do this
+            if (m_audio_len + n_samples > m_audio.size()) {
+                fprintf(stderr, "%s: buffer overflow detected, skipping copy operation\n", __func__);
+                return;
+            } else {
+                memcpy(&m_audio[m_audio_pos], stream, n_samples * sizeof(float));
+            }
 
             m_audio_pos = (m_audio_pos + n_samples) % m_audio.size();
             m_audio_len = std::min(m_audio_len + n_samples, m_audio.size());
@@ -207,9 +220,24 @@ void audio_async::get(int ms, std::vector<float> & result) {
         if (s0 + n_samples > m_audio.size()) {
             const size_t n0 = m_audio.size() - s0;
 
+            // FIXME: Most likely not optimal, find a cleaner way to do this
+            if (n_samples - n0 > m_audio.size()) {
+                fprintf(stderr, "%s: buffer overflow detected, skipping copy operation\n", __func__);
+                return;
+            }
+            if (n0 + (n_samples - n0) > result.size()) {
+                fprintf(stderr, "%s: buffer overflow detected, skipping copy operation\n", __func__);
+                return;
+            }
+
             memcpy(result.data(), &m_audio[s0], n0 * sizeof(float));
             memcpy(&result[n0], &m_audio[0], (n_samples - n0) * sizeof(float));
         } else {
+            if (n_samples > result.size()) {
+                fprintf(stderr, "%s: buffer overflow detected, skipping copy operation\n", __func__);
+                return;
+            }
+
             memcpy(result.data(), &m_audio[s0], n_samples * sizeof(float));
         }
     }

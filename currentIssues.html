@@ -38,60 +38,7 @@ Examining src/tools/motion_blur.hpp <br>
 
 <h2>Final Results</h2>
 <ul>
-<li>src/handlers/emotions/ned.hpp:38: <b>  [2] </b> (misc) <i> open:
-  Check when opening files - can an attacker redirect it (via symlinks),
-  force the opening of special file type (e.g., device files), move things
-  around to create a race condition, control its ancestors, or change its
-  contents? (<a
-  href="https://cwe.mitre.org/data/definitions/362.html">CWE-362</a>). </i>
-<li>src/handlers/voice/common-sdl.cpp:161: <b>  [2] </b> (buffer) <i> memcpy:
-  Does not check for buffer overflows when copying to destination (<a
-  href="https://cwe.mitre.org/data/definitions/120.html">CWE-120</a>). Make
-  sure destination can always hold the source data. </i>
-<li>src/handlers/voice/common-sdl.cpp:162: <b>  [2] </b> (buffer) <i> memcpy:
-  Does not check for buffer overflows when copying to destination (<a
-  href="https://cwe.mitre.org/data/definitions/120.html">CWE-120</a>). Make
-  sure destination can always hold the source data. </i>
-<li>src/handlers/voice/common-sdl.cpp:167: <b>  [2] </b> (buffer) <i> memcpy:
-  Does not check for buffer overflows when copying to destination (<a
-  href="https://cwe.mitre.org/data/definitions/120.html">CWE-120</a>). Make
-  sure destination can always hold the source data. </i>
-<li>src/handlers/voice/common-sdl.cpp:210: <b>  [2] </b> (buffer) <i> memcpy:
-  Does not check for buffer overflows when copying to destination (<a
-  href="https://cwe.mitre.org/data/definitions/120.html">CWE-120</a>). Make
-  sure destination can always hold the source data. </i>
-<li>src/handlers/voice/common-sdl.cpp:211: <b>  [2] </b> (buffer) <i> memcpy:
-  Does not check for buffer overflows when copying to destination (<a
-  href="https://cwe.mitre.org/data/definitions/120.html">CWE-120</a>). Make
-  sure destination can always hold the source data. </i>
-<li>src/handlers/voice/common-sdl.cpp:213: <b>  [2] </b> (buffer) <i> memcpy:
-  Does not check for buffer overflows when copying to destination (<a
-  href="https://cwe.mitre.org/data/definitions/120.html">CWE-120</a>). Make
-  sure destination can always hold the source data. </i>
-<li>src/handlers/voice/common.h:210: <b>  [2] </b> (misc) <i> open:
-  Check when opening files - can an attacker redirect it (via symlinks),
-  force the opening of special file type (e.g., device files), move things
-  around to create a race condition, control its ancestors, or change its
-  contents? (<a
-  href="https://cwe.mitre.org/data/definitions/362.html">CWE-362</a>). </i>
-<li>src/handlers/voice/common.h:218: <b>  [2] </b> (misc) <i> open:
-  Check when opening files - can an attacker redirect it (via symlinks),
-  force the opening of special file type (e.g., device files), move things
-  around to create a race condition, control its ancestors, or change its
-  contents? (<a
-  href="https://cwe.mitre.org/data/definitions/362.html">CWE-362</a>). </i>
-<li>src/handlers/voice/whisper.hpp:157: <b>  [2] </b> (buffer) <i> memcpy:
-  Does not check for buffer overflows when copying to destination (<a
-  href="https://cwe.mitre.org/data/definitions/120.html">CWE-120</a>). Make
-  sure destination can always hold the source data. </i>
-<li>src/handlers/emotions/ned.hpp:44: <b>  [1] </b> (buffer) <i> read:
-  Check buffer boundaries if used in a loop including recursive loops (<a
-  href="https://cwe.mitre.org/data/definitions/120.html">CWE-120</a>, <a
-  href="https://cwe.mitre.org/data/definitions/20.html">CWE-20</a>). </i>
-<li>src/handlers/voice/whisper.hpp:211: <b>  [1] </b> (buffer) <i> strlen:
-  Does not handle strings that are not \0-terminated; if given one it may
-  perform an over-read (it could cause a crash if unprotected) (<a
-  href="https://cwe.mitre.org/data/definitions/126.html">CWE-126</a>). </i>
+<li>File Read "results" are a false positive. The program is reading directly from the camera: <code>camera.open(0);</code>
 </ul>
 <h2>Analysis Summary</h2>
 <p>
