@@ -32,17 +32,13 @@ struct Mat5D {
 };
 
 struct Matrix {
-    float M[1][5];
+    std::vector<std::vector<float>>  M;
 
     public:
         Matrix() = default;
 
         void clear() {
-            for (int i = 0; i < 1; i++) {
-                for (int j = 0; j < 5; j++) {
-                    M[i][j] = 0;
-                }
-            }
+            M.clear();
         }
 
         void set(int i, int j, float value) {
@@ -54,11 +50,12 @@ struct Matrix {
         }
 
         void print() {
+            #pragma omp parallel for
             for (int i = 0; i < 1; i++) {
-                for (int j = 0; j < 5; j++) {
-                    std::cout << M[i][j] << " ";
+                #pragma omp parallel for
+                for (int j = 0; j < 1; i++) {
+                    std::cout << M[i][j] << "\n" << std::endl;
                 }
-                std::cout << std::endl;
             }
         }
 
@@ -77,23 +74,28 @@ struct Matrix {
         }
 };
 
-
 Matrix convertMat3D(Mat3D position) {
-    Matrix converted = { { 
-        position.X, position.Y, position.Y, 
-        0.0, 0.0 // Pre-Define the Yaw/Pitch
-    } };
+    Matrix matrix;
 
-    return converted;
+    matrix.M[0][0] = position.X;
+    matrix.M[0][1] = position.Y;
+    matrix.M[0][2] = position.Z;
+    matrix.M[0][3] = 0;
+    matrix.M[0][4] = 0;
+
+    return matrix;
 };
 
 Matrix convertMat5D(Mat5D position) {
-    Matrix converted = { {
-        position.X, position.Y, position.Z,
-        position.Yaw, position.Pitch
-    } };
+    Matrix matrix;
 
-    return converted;
+    matrix.M[0][0] = position.X;
+    matrix.M[0][1] = position.Y;
+    matrix.M[0][2] = position.Z;
+    matrix.M[0][3] = position.Yaw;
+    matrix.M[0][4] = position.Pitch;
+
+    return matrix;
 };
 
 #endif

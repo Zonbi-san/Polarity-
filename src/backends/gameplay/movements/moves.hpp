@@ -11,13 +11,13 @@ class MovementProcessor {
         void appendToMatrix(Mat3D mat) {
             // Convert the matrix to something usable
             Matrix newMat = convertMat3D(mat);
-            this->currentMatrix[1][5] = { newMat };
+            this->currentMatrix = newMat;
 
             // append are current matrix to the final matrix
-            this->matrix.push_back(this->currentMatrix);
+            this->matrix.append(this->matrix, this->currentMatrix);
         }
 
-        std::vector<Matrix[1][5]> getMatrix(void) {
+        Matrix getMatrix(void) {
             return this->matrix;
         }
 
@@ -26,10 +26,13 @@ class MovementProcessor {
             std::vector<float> x, y;
 
             // Flatten the matrix into two 1D arrays
-            for (const auto& mat : this->matrix) {
-                for (int i = 0; i < 5; i++) {
-                    x.push_back(mat[0][0].M[0][i]);
-                    y.push_back(currentMatrix[0][0].M[0][i]);
+            for (const auto& mat : this->matrix.M) {
+                for (int i = 0; i < mat.size(); i++) {
+                    if (i < 3) {
+                        x.push_back(mat[i]);
+                    } else {
+                        y.push_back(mat[i]);
+                    }
                 }
             }
 
@@ -54,10 +57,10 @@ class MovementProcessor {
     
     private:
         ///
-        Matrix currentMatrix[1][5];
+        Matrix currentMatrix;
 
     public:
-        std::vector<Matrix[1][5]> matrix;
+        Matrix matrix;
 
 };
 

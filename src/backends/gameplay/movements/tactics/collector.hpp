@@ -22,14 +22,7 @@ class Collector {
     Collector(void) {
         // Initialize the matrix
         
-        this->currentMatrix = { 
-            {
-                0, // Action
-                0, // Occurence
-                false, // Combo
-                0 // Target
-            } 
-        };
+        this->currentMatrix = {};
     };
 
     ~Collector(void) {
