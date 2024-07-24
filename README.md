@@ -20,8 +20,14 @@ This project is a combination of facial emotion recognition (FER), sentiment ana
 ## Usage: (Planned)
 1. [Coming Soon]
 
-## Authors:
+## Authors And Contributors:
 - Ashley (me@ashleyxir.tech)
+- CallMeZombie ([Zonbi-san](https://github.com/Zonbi-san))
+
+## Credits:
+- Proaust for the base of the RPPG: [Proaust/heartbeat](https://github.com/prouast/heartbeat)
+- Daniel Ruskin for the fundamental layout of the RNN: [DanielRuskin1/simple-recurrent-neural-network](https://github.com/DanielRuskin1/simple-recurrent-neural-network)
+- Georgi Gerganov for Whisper.cpp: [ggerganov/whisper.cpp](https://github.com/ggerganov/whisper.cpp)
 
 ## License:
 This project is licensed under the MIT License - see the [LICENSE](LICENSE.md) file for details.
