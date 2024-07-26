@@ -3,19 +3,19 @@
 
 #include <memory>
 #include <armadillo>
-#include "rnn.hpp"
-#include "behave_rnn.hpp"
+#include "../rnn.hpp"
+#include "../behave_rnn.hpp"
 
 class ActivationLossConfig {
     public:
         static std::unique_ptr<arma::colvec> evalOutputActivation(const arma::colvec& input) {
             arma::colvec matExp = arma::exp(input);
 
-            return std::unique_ptr<arma::colvec>(new arma::colvec(matExp / arma::accu(matExp)));
+            return std::make_unique<arma::colvec>(matExp / arma::accu(matExp));
         }
 
         static std::unique_ptr<arma::colvec> evalSavedStateActivation(const arma::colvec& input) {
-            return std::unique_ptr<arma::colvec>(new arma::colvec(arma::tanh(input)));
+            return std::make_unique<arma::colvec>(arma::tanh(input));
         }   
 
         static double evalCost(const Behaviour& correct, const Behaviour& predict) {

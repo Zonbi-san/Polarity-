@@ -1,17 +1,20 @@
+#ifndef UTILS_H
+#define UTILS_H
 #include <unordered_map>
 #include <armadillo>
 
 typedef arma::colvec Action;
 typedef arma::mat Behaviour;
-typedef std::vector<Behaviour> BehaviourListList;
+typedef std::vector<Behaviour> BehaviourList;
 
-typedef std::string TextWord;
-typedef std::vector<TextWord> TextBehaviourList;
-typedef std::vector<TextBehaviourList> TextBehaviourListList;
+typedef std::string ActionBehaviour;
+typedef std::vector<ActionBehaviour> ActionBehaviourList;
+typedef std::vector<ActionBehaviourList> ActionBehaviourListList;
 
-typedef std::unordered_map<TextWord, int> TextVocab;
-typedef std::unordered_map<int, TextWord> TextVocabRev;
-typedef std::vector<std::pair<TextWord, int>> TextOccurrenceCountsVec;
-typedef std::unordered_map<TextWord, int> TextOccurrenceCountsMap;
+typedef std::unordered_map<ActionBehaviour, int> ActionKnowledge;
+typedef std::unordered_map<int, ActionBehaviour> ActionKnowledgeRev;
+typedef std::vector<std::pair<ActionBehaviour, int>> ActionOccurrenceCountsVec;
+typedef std::unordered_map<ActionBehaviour, int> ActionOccurrenceCountsMap;
 
 #define UNKNOWN_CHAR_VAL "UNKNOWN_CHAR"
+#endif // UTILS_H

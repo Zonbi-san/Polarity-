@@ -1,5 +1,5 @@
-#include <iostream>
-#include <stdio.h>
+#ifndef REGRESSION_HPP
+#define REGRESSION_HPP
 #include <vector>
 #include <numeric>
 
@@ -10,7 +10,7 @@ class Regression {
         vector<float> x;
         vector<float> y;
         float m, c;
-        
+
         float coeff;
         float constTerm;
 
@@ -21,7 +21,7 @@ class Regression {
         float sumy_sqr;
 
     public:
-        Regression() {
+        Regression(): m(0), c(0) {
             coeff = 0;
             constTerm = 0;
             sumy = 0;
@@ -45,10 +45,10 @@ class Regression {
             coeff = num / denom;
         }
 
-        float sizeOfData() {
+        [[nodiscard]] float sizeOfData() const {
             return x.size();
         }
-        
+
         float coefficient() {
             if (constTerm == 0) {
                 calcCoeff();
@@ -126,10 +126,11 @@ class Regression {
             float sst = 0;
             float meanY = std::accumulate(y.begin(), y.end(), 0.0) / y.size();
 
-            for (int i = 0; i < y.size(); i++) {
-                sst += (y[i] - meanY) * (y[i] - meanY);
+            for (float i : y) {
+                sst += (i - meanY) * (i - meanY);
             }
 
             return 1 - (ssr / sst);
         }
 };
+#endif // REGRESSION_HPP

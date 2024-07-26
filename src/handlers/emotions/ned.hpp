@@ -1,8 +1,10 @@
+#ifndef NED_HPP
+#define NED_HPP
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include <opencv2/face.hpp>
-#include "includes/emotions.h"
-#include "tools/image_smoothing.hpp"
+#include "../../../includes/emotions.h"
+#include "../../tools/image_smoothing.hpp"
 
 using namespace cv;
 using namespace cv::face;
@@ -12,7 +14,7 @@ struct Condition {
 	std::string result;
 };
 
-std::string NED::detectEmotion(cv::VideoCapture camera) {
+inline std::string NED::detectEmotion(cv::VideoCapture camera) {
     std::string label;
     bool firstFrame = true;
     CascadeClassifier faceDetector;
@@ -26,7 +28,7 @@ std::string NED::detectEmotion(cv::VideoCapture camera) {
 
     try {
         faceDetector.load(cascadeName);
-    } catch (std::exception& e) {
+    } catch (std::exception&) {
         return "Error Loading Cascade Classifier";
     }
 
@@ -36,7 +38,7 @@ std::string NED::detectEmotion(cv::VideoCapture camera) {
     if (!camera.isOpened()) {
         try {
             camera.open(0);
-        } catch (std::exception& e) {
+        } catch (std::exception&) {
             return "Camera not found";
         }
     }
@@ -58,18 +60,17 @@ std::string NED::detectEmotion(cv::VideoCapture camera) {
         faces.clear();
         landmarks.clear();
         cvtColor(frame, gray, COLOR_BGR2GRAY);
-        
+
         if (firstFrame) {
             lastframe = gray.clone();
             firstFrame = false;
         }
 
         faceDetector.detectMultiScale(gray, faces);
-        bool success = facemark->fit(gray, faces, landmarks);
 
-        if (success) {
+        if (facemark->fit(gray, faces, landmarks)) {
             label = getEmotion(
-                gray, lastframe, faceDetector, 
+                gray, lastframe, faceDetector,
                 landmarks, faces, facemark
             );
         } else {
@@ -82,7 +83,7 @@ std::string NED::detectEmotion(cv::VideoCapture camera) {
     return label;
 };
 
-float NED::getDistance(
+inline float NED::getDistance(
     const Point2f& point1, const Point2f& point2
 ) {
     return sqrt(
@@ -94,15 +95,10 @@ float NED::getDistance(
     );
 };
 
-struct Condition {
-	std::function<bool()> check;
-	std::string result;
-};
-
-std::string NED::getEmotion(
+inline std::string NED::getEmotion(
     InputArray frame, InputArray lastFrame,
-    CascadeClassifier classifier, 
-    std::vector<std::vector<Point2f>> landmarks,
+    CascadeClassifier classifier,
+    const std::vector<std::vector<Point2f>> &landmarks,
     const std::vector<Rect>& faces, const Ptr<Facemark>& facemark
 ) {
     std::string result;
@@ -135,7 +131,7 @@ std::string NED::getEmotion(
 			},
 			"Surprise"
 			#pragma endregion
-		}, 
+		},
 		{
 			#pragma region Sadness
 			[&]() {
@@ -167,8 +163,8 @@ std::string NED::getEmotion(
 				return dist21to22 < 0 && dist20to23 < 0 && dist21to33 < 0 && dist22to33 < 0 && // AU 9
 					dist33to56 > 0 && dist33to57 > 0 && dist33to58 > 0 && // AU 16
 					(
-						(dist5to48 < 0 && dist11to54 < 0) || 
-						(dist61to67 > 0 && dist62to66 > 0 && dist63to65 > 0) 
+						(dist5to48 < 0 && dist11to54 < 0) ||
+						(dist61to67 > 0 && dist62to66 > 0 && dist63to65 > 0)
 					); // AU 15 or AU 26
 			},
 			"Disgust"
@@ -212,12 +208,13 @@ std::string NED::getEmotion(
 		}
 	};
 
-	for (const auto& conditions	: conditions) {
-		if (conditions.check()) {
-			result = conditions.result;
+	for (const auto& c	: conditions) {
+		if (c.check()) {
+			result = c.result;
 			break;
 		}
 	}
 
     return result;
 };
+#endif // NED_HPP

@@ -7,16 +7,16 @@
 
 class NED {
 public:
-    std::string detectEmotion(cv::VideoCapture webCam);
+    static std::string detectEmotion(cv::VideoCapture webCam);
 private:
-    float getDistance(
+    static float getDistance(
         const cv::Point2f& point1, const cv::Point2f& point2
     );
 
-    std::string getEmotion(
+    static std::string getEmotion(
         cv::InputArray frame, cv::InputArray lastFrame,
         cv::CascadeClassifier classifier,
-        std::vector<std::vector<cv::Point2f>> landmarks,
+        const std::vector<std::vector<cv::Point2f>> &landmarks,
         const std::vector<cv::Rect>& faces, 
         const cv::Ptr<cv::face::Facemark>& facemark
     );

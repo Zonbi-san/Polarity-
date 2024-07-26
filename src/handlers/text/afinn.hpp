@@ -1,16 +1,17 @@
-#include <includes/afinn.h>
+#ifndef AFINN_HPP
+#define AFINN_HPP
+#include "../../../includes/afinn.h"
 
 #include <unordered_map>
 #include <string>
 #include <fstream>
 
-int AFINN::getText(std::string text) {
-    if (textPolarity.size() == 0) {
-        std::ifstream file ("data/AFINN.txt");
-        if (file.is_open()) {
+inline int AFINN::getText(const std::string& text) {
+    if (textPolarity.empty()) {
+        if (std::ifstream file ("data/AFINN.txt"); file.is_open()) {
             std::string line;
             while (getline(file, line)) {
-                int pos = line.find("\t");
+                unsigned long pos = line.find('\t');
                 std::string word = line.substr(0, pos);
                 int value = std::stoi(line.substr(pos + 1));
                 textPolarity[word] = value;
@@ -18,22 +19,21 @@ int AFINN::getText(std::string text) {
             file.close();
         }
 
-        auto it = textPolarity.find(text);
-        if (it != textPolarity.end()) {
+        if (auto it = textPolarity.find(text); it != textPolarity.end()) {
             return it->second;
         } return 0;
     } else {
-        auto it = textPolarity.find(text);
-        if (it != textPolarity.end()) {
+        if (auto it = textPolarity.find(text); it != textPolarity.end()) {
             return it->second;
         } return 0;
     }
-};
+}
 
-int AFINN::getEmoji(std::string emoji) {
-    auto it = emojiPolarity.find(emoji);
-    if (it != emojiPolarity.end()) {
+inline int AFINN::getEmoji(const std::string &emoji) {
+    if (const auto it = emojiPolarity.find(emoji); it != emojiPolarity.end()) {
         return it->second;
     }
     return 0;
 }
+
+#endif // AFINN_HPP

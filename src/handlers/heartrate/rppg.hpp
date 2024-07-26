@@ -1,15 +1,17 @@
+#ifndef RPPG_HPP
+#define RPPG_HPP
 #include <fstream>
 #include <string>
 #include <opencv2/objdetect.hpp>
 #include <opencv2/dnn.hpp>
-#include <stdio.h>
+#include <cstdio>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/video.hpp>
 #include <opencv2/dnn_superres.hpp>
-#include "includes/opencv.hpp"
-#include "includes/rppg.h"
+#include "../../../includes/opencv.hpp"
+#include "../../../includes/rppg.h"
 
 #pragma region namespaces
 
@@ -48,7 +50,7 @@ std::ostream& operator<<(std::ostream& os, std::vector<T> vect) {
  * @brief This class Calculates the mean and standard deviation of a subvector
  * to the computation subvector window equivalent to "camera lag"
 */
-VectorStats::VectorStats(vec_iter_ld start, vec_iter_ld end) {
+inline VectorStats::VectorStats(vec_iter_ld start, vec_iter_ld end) {
     this->start = start;
     this->end = end;
     this->compute();
@@ -58,7 +60,7 @@ VectorStats::VectorStats(vec_iter_ld start, vec_iter_ld end) {
  * @brief This method calculates the mean and standard deviation using STL,
  * via Two-Pass implementation of Mean and Variance Calculation
 */
-void VectorStats::compute() {
+inline void VectorStats::compute() {
     ld sum = std::accumulate(start, end, 0.0);
     uint distance = std::distance(start, end);
     ld mean = sum / distance;
@@ -76,21 +78,32 @@ void VectorStats::compute() {
     this->m2 = std_dev;
 };
 
-ld VectorStats::mean() {
+inline ld VectorStats::mean() const {
     return m1;
 }
 
-ld VectorStats::standardDeviation() {
+inline ld VectorStats::standardDeviation() const {
     return m2;
 }
 #pragma endregion
 
 #pragma region RPPG Algorthim
-RPPG::RPPG() {;}
+inline RPPG::RPPG(): rppga(), fda(), maxSignalSize(0), minSignalSize(0), rescanFrequency(0), samplingFrequency(0),
+                     timeBase(0),
+                     time(0),
+                     fps(0), high(0),
+                     lastSamplingTime(0), lastScanTime(0),
+                     low(0),
+                     faceValid(false),
+                     rescanFlag(false),
+                     meanBpm(0),
+                     minBpm(0), maxBpm(0) {
+    ;
+}
 
-bool RPPG::load(
+inline bool RPPG::load(
     const rPPGAlgorithm rppga, const faceDetAlgorithm fda = deep,
-    const int width, const int height, const double timebase, 
+    const int width, const int height, const double timebase,
     const int downsample, const double samplingFrequency,
     const double rescanFrequency, const int minSignalSize,
     const int maxSignalSize,
@@ -112,7 +125,7 @@ bool RPPG::load(
         this->timeBase = timeBase;
 
         // Load in the classifier
-        
+
         dnnClassifier = readNetFromCaffe(dnnProtoPath, dnnModelPath);
 
         return true;
@@ -121,7 +134,7 @@ bool RPPG::load(
     }
 };
 
-int RPPG::runDetection() {
+inline int RPPG::runDetection() {
     cv::VideoCapture cap(0);
     if (!cap.isOpened()) {
         std::cerr << "Error: Could not open camera" << std::endl;
@@ -129,7 +142,7 @@ int RPPG::runDetection() {
     }
 
     Mat frame, gray;
-    
+
     if (frame.empty()) {
         std::cerr << "Error: Could not grab frame" << std::endl;
         return 1;
@@ -139,9 +152,10 @@ int RPPG::runDetection() {
     equalizeHist(gray, gray);
 
     this->processFrame(frame, gray, 0);
+    return 0;
 }
 
-Mat upscaleImage(Mat img, string modelName, string ModelPath, int scale) {
+inline Mat upscaleImage(const Mat &img, const string &modelName, const string &ModelPath, const int scale) {
     DnnSuperResImpl sr;
     sr.readModel(ModelPath);
     sr.setModel(modelName, scale);
@@ -150,7 +164,7 @@ Mat upscaleImage(Mat img, string modelName, string ModelPath, int scale) {
     return result;
 }
 
-float RPPG::processFrame(Mat& frameRGB, Mat& frameGray, int time) {
+inline float RPPG::processFrame(Mat& frameRGB, Mat& frameGray, int time) {
     float bpm = 0.0;
 
     // upscale the image
@@ -190,7 +204,7 @@ float RPPG::processFrame(Mat& frameRGB, Mat& frameGray, int time) {
             }
             assert(s.rows == t.rows && s.rows == re.rows);
         } catch (std::exception& exp) {
-            // if there isn't, don't worry 
+            // if there isn't, don't worry
         }
 
         Scalar means = mean(frameRGB, mask);
@@ -204,8 +218,8 @@ float RPPG::processFrame(Mat& frameRGB, Mat& frameGray, int time) {
         fps = getFps(t, timeBase);
 
         // Update our band spectrum limits (BSL)
-        low = (int)(s.rows * LOW_BPM / SEC_PER_MIN / fps);
-        high = (int)(s.rows * HIGH_BPM / SEC_PER_MIN / fps) + 1;
+        low = static_cast<int>(s.rows * LOW_BPM / SEC_PER_MIN / fps);
+        high = static_cast<int>(s.rows * HIGH_BPM / SEC_PER_MIN / fps) + 1;
 
         // Check if the Signals are large enough to estimate
         if (s.rows >= (fps * minSignalSize)) {
@@ -237,7 +251,7 @@ float RPPG::processFrame(Mat& frameRGB, Mat& frameGray, int time) {
     return bpm;
 }
 
-void RPPG::exit() {
+inline void RPPG::exit() {
     std::abort();
 }
 
@@ -252,7 +266,7 @@ void RPPG::exit() {
  * @return a hashmap containing the filtered signal and corresponding mean and standard deviation.
  * @note https://stackoverflow.com/questions/22583391/peak-signal-detection-in-realtime-timeseries-data/46998001#46998001
  */
-unordered_map<string, vector<ld>> RPPG::z_score_thresholding(
+inline unordered_map<string, vector<ld>> RPPG::z_score_thresholding(
     vector<ld> input, int lag,
     ld threshold,  ld influence
 ) {
@@ -263,7 +277,7 @@ unordered_map<string, vector<ld>> RPPG::z_score_thresholding(
     vector<ld> filtered_input(input.begin(), input.end());
     vector<ld> filtered_mean(input.size());
     vector<ld> filtered_stddev(input.size());
-    
+
     VectorStats lag_subvector_stats(input.begin(), input.begin() + lag);
     filtered_mean[lag - 1] = lag_subvector_stats.mean();
     filtered_stddev[lag - 1] = lag_subvector_stats.standardDeviation();
@@ -280,7 +294,7 @@ unordered_map<string, vector<ld>> RPPG::z_score_thresholding(
         }
 
         VectorStats lag_subvector_stats(
-            filtered_input.begin() + (i - lag), 
+            filtered_input.begin() + (i - lag),
             filtered_input.begin() + i
         );
         filtered_mean[i] = lag_subvector_stats.mean();
@@ -294,9 +308,9 @@ unordered_map<string, vector<ld>> RPPG::z_score_thresholding(
     return output;
 }
 
-void RPPG::detectFace(Mat& frameRGB, Mat& frameGray) {
+inline void RPPG::detectFace(const Mat& frameRGB, Mat& frameGray) {
     vector<cv::Rect> boxes = {};
-    
+
     // Detect faces with DNN
     Mat resize300;
     cv::resize(frameRGB, resize300, Size(300, 300));
@@ -331,7 +345,7 @@ void RPPG::detectFace(Mat& frameRGB, Mat& frameGray) {
     }
 };
 
-void RPPG::setNearestBox(vector<Rect> boxes) {
+inline void RPPG::setNearestBox(std::vector<cv::Rect> boxes) {
     int index = 0;
     Point p = box.tl() - boxes.at(0).tl();
     int min = p.x * p.x + p.y * p.y;
@@ -346,30 +360,30 @@ void RPPG::setNearestBox(vector<Rect> boxes) {
     box = boxes.at(index);
 };
 
-void RPPG::detectCorners(Mat &frameGray) {
+inline void RPPG::detectCorners(Mat &frameGray) {
     // Define tracking region
     Mat trackingRegion = Mat::zeros(frameGray.rows, frameGray.cols, CV_8UC1);
     Point points[1][4];
-    
+
     points[0][0] = Point(box.tl().x + 0.22 * box.width, box.tl().y + 0.21 * box.height);
     points[0][1] = Point(box.tl().x + 0.78 * box.width, box.tl().y + 0.21 * box.height);
     points[0][2] = Point(box.tl().x + 0.70 * box.width, box.tl().y + 0.65 * box.height);
     points[0][3] = Point(box.tl().x + 0.30 * box.width, box.tl().y + 0.65 * box.height);
-    
+
     const Point *pts[1] = {points[0]};
     int npts[] = {4};
     fillPoly(trackingRegion, pts, npts, 1, WHITE);
 
     // Apply corner detection
     goodFeaturesToTrack(
-        frameGray, corners, MAX_CORNERS, 
-        QUALITY_LEVEL, MIN_DISTANCE, trackingRegion, 
+        frameGray, corners, MAX_CORNERS,
+        QUALITY_LEVEL, MIN_DISTANCE, trackingRegion,
         3, false, 0.04
     );
 };
 
 
-void RPPG::trackFace(Mat &frameGray) {
+inline void RPPG::trackFace(Mat &frameGray) {
     // Make sure enough corners are available
     if (corners.size() < MIN_CORNERS) {
         detectCorners(frameGray);
@@ -431,24 +445,24 @@ void RPPG::trackFace(Mat &frameGray) {
     }
 };
 
-void RPPG::updateMask(Mat &frameGray) {
+inline void RPPG::updateMask(Mat &frameGray) {
     mask = Mat::zeros(frameGray.size(), frameGray.type());
     rectangle(mask, this->roi, WHITE, FILLED);
 };
 
-void RPPG::updateROI() {
+inline void RPPG::updateROI() {
     this->roi = Rect(
         Point(box.tl().x + 0.3 * box.width, box.tl().y + 0.1 * box.height),
         Point(box.tl().x + 0.7 * box.width, box.tl().y + 0.25 * box.height)
-    );    
+    );
 };
 
-void RPPG::extractSignal_g() {
+inline void RPPG::extractSignal_g() {
     // Denoise
     Mat s_den = Mat(s.rows, 1, CV_64F);
-    
+
     denoise(s.col(1), re, s_den);
-    
+
     // Normalise
     normalization(s_den, s_den);
 
@@ -463,7 +477,7 @@ void RPPG::extractSignal_g() {
     s_mav.copyTo(s_f);
 };
 
-void RPPG::extractSignal_pca() {
+inline void RPPG::extractSignal_pca() {
     // Denoise signals
     Mat s_den = Mat(s.rows, s.cols, CV_64F);
     denoise(s, re, s_den);
@@ -487,7 +501,7 @@ void RPPG::extractSignal_pca() {
     s_mav.copyTo(s_f);
 };
 
-void RPPG::extractSignal_xminay() {
+inline void RPPG::extractSignal_xminay() {
     // Denoise signals
     Mat s_den = Mat(s.rows, s.cols, CV_64F);
     denoise(s, re, s_den);
@@ -531,7 +545,7 @@ void RPPG::extractSignal_xminay() {
 };
 
 
-float RPPG::estimateHeartrate() {
+inline float RPPG::estimateHeartrate() {
     powerSpectrum = cv::Mat(s_f.size(), CV_32F);
     timeToFrequency(s_f, powerSpectrum, true);
 
@@ -569,7 +583,7 @@ float RPPG::estimateHeartrate() {
     return (float)(bpm);
 };
 
-void RPPG::invalidateFace() {
+inline void RPPG::invalidateFace() {
     s = Mat1d();
     s_f = Mat1d();
     t = Mat1d();
@@ -579,3 +593,4 @@ void RPPG::invalidateFace() {
 };
 
 #pragma endregion
+#endif // RPPG_HPP

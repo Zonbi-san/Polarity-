@@ -49,18 +49,18 @@ struct Matrix {
             return M[i][j];
         }
 
-        void print() {
+    [[noreturn]] void print() const {
             #pragma omp parallel for
-            for (int i = 0; i < 1; i++) {
+            for (int i = 0; i < M.size(); i++) {
                 #pragma omp parallel for
-                for (int j = 0; j < 1; i++) {
+                for ( int j = 0; j < M[i].size(); i++) {
                     std::cout << M[i][j] << "\n" << std::endl;
                 }
             }
         }
 
         static inline Matrix append(
-            Matrix newMat, Matrix current
+            Matrix& newMat, Matrix current
         ) {
             // Append the new Matrix, to our current matrix
             std::vector<Matrix> matrix;
@@ -74,7 +74,7 @@ struct Matrix {
         }
 };
 
-Matrix convertMat3D(Mat3D position) {
+inline Matrix convertMat3D(Mat3D position) {
     Matrix matrix;
 
     matrix.M[0][0] = position.X;
@@ -86,7 +86,7 @@ Matrix convertMat3D(Mat3D position) {
     return matrix;
 };
 
-Matrix convertMat5D(Mat5D position) {
+inline Matrix convertMat5D(Mat5D position) {
     Matrix matrix;
 
     matrix.M[0][0] = position.X;

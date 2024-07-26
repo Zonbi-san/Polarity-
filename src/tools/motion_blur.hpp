@@ -1,18 +1,19 @@
+#ifndef MOTION_BLUR_HPP
+#define MOTION_BLUR_HPP
 #include <iostream>
 #include "opencv2/imgproc.hpp"
-#include "opencv2/imgcodecs.hpp"
- 
+
 using namespace cv;
 using namespace std;
 
 class MotionBlur {
-    public:
-    MotionBlur() {};
+public:
+    MotionBlur() = default;
 
     Mat motionBlur(Mat src) {
-        int len = 125;
-        double theta = 0;
-        int snr = 700;
+        constexpr int len = 125;
+        constexpr double theta = 0;
+        constexpr double snr = 700;
 
         if (src.empty()) {
             cout << "Error loading src" << endl;
@@ -20,12 +21,12 @@ class MotionBlur {
 
         Mat out;
 
-        Rect roi = Rect(0, 0, src.cols & -2, src.rows & -2);
+        const Rect roi = Rect(0, 0, src.cols & -2, src.rows & -2);
 
         Mat Hw, h;
-        
+
         this->calculatePSF(h, roi.size(), len, theta);
-        this->calculateWnrFilter(h, Hw, 1.0 / double(snr));
+        this->calculateWnrFilter(h, Hw, 1.0 / snr);
 
         src.convertTo(src, CV_32F);
         this->edgeTaper(src, src);
@@ -38,7 +39,7 @@ class MotionBlur {
         return out;
     }
 
-    void calculatePSF(Mat& out, Size filter, int len, double theta) {
+    static void calculatePSF(Mat &out, Size filter, int len, double theta) {
         Mat h(filter, CV_32F, Scalar(0));
         Point point(filter.width / 2, filter.height / 2);
         ellipse(h, point, Size(0, cvRound(float(len) / 2.0)), 90.0 - theta, 0, 360, Scalar(255), FILLED);
@@ -46,7 +47,7 @@ class MotionBlur {
         out = h / summa[0];
     }
 
-    void FFTShift(const Mat& input, Mat& output) {
+    static void FFTShift(const Mat &input, Mat &output) {
         output = input.clone();
         int cx = output.cols / 2;
         int cy = output.rows / 2;
@@ -66,7 +67,7 @@ class MotionBlur {
         tmp.copyTo(q2);
     }
 
-    void filter2DFreq(const Mat& input, Mat& output, const Mat& H) {
+    static void filter2DFreq(const Mat &input, Mat &output, const Mat &H) {
         Mat planes[2] = {Mat_<float>(input.clone()), Mat::zeros(input.size(), CV_32F)};
         Mat complexI;
         merge(planes, 2, complexI);
@@ -83,7 +84,7 @@ class MotionBlur {
         output = planes[0];
     }
 
-    void calculateWnrFilter(const Mat& input, Mat& output, double nsr) {
+    static void calculateWnrFilter(const Mat &input, Mat &output, double nsr) {
         Mat h;
         FFTShift(input, h);
 
@@ -103,42 +104,39 @@ class MotionBlur {
         divide(planes[0], denom, output);
     }
 
-    void edgeTaper(const Mat& input, Mat& output, double gamma = 5.0, double beta = 0.2) {
+    static void edgeTaper(const Mat &input, Mat &output, double gamma = 5.0, double beta = 0.2) {
         int nx = input.cols;
         int ny = input.rows;
         Mat w1(1, nx, CV_32F, Scalar(0));
         Mat w2(1, ny, CV_32F, Scalar(0));
 
-        float* p1 = w1.ptr<float>(0);
-        float* p2 = w2.ptr<float>(0);
+        float *p1 = w1.ptr<float>(0);
+        float *p2 = w2.ptr<float>(0);
 
         float dx = float(2.0 * CV_PI / nx);
         float x = float(-CV_PI);
 
-        #pragma omp parallel for
+#pragma omp parallel for
         for (int i = 0; i < nx; i++) {
-            p1[i] = float(
-                0.5 * (tanh((
-                    x + gamma / 2
-                ) / beta) - tanh((
-                    x - gamma / 2
-                ) / beta ))
-            );
+            p1[i] = static_cast<float>(0.5 * (tanh((
+                                                       x + gamma / 2
+                                                   ) / beta) - tanh((
+                                                                        x - gamma / 2
+                                                                    ) / beta)));
             x += dx;
         }
 
-        float dy = float(2.0 * CV_PI / ny);
-        float y = float(-CV_PI);
+        const auto dy = static_cast<float>(2.0 * CV_PI / ny);
+        auto y = static_cast<float>(-CV_PI);
 
-        #pragma omp parallel for
+#pragma omp parallel for
         for (int i = 0; i < ny; i++) {
-            p2[i] = float(
-                0.5 * (tanh((
-                    y + gamma / 2
-                ) / beta) - tanh((
-                    y - gamma / 2
-                ) / beta ))
-            );
+            p2[i] = static_cast<float>(0.5 * (tanh((
+                y + gamma / 2
+            ) / beta) - tanh((
+                y - gamma / 2
+            ) / beta)));
+
             y += dy;
         }
 
@@ -146,5 +144,6 @@ class MotionBlur {
         multiply(input, w, output);
     }
 
-    private:
+private:
 };
+#endif // MOTION_BLUR_HPP

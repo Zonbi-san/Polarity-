@@ -39,8 +39,8 @@ public:
 private:
     vec_iter_ld start;
     vec_iter_ld end;
-    ld m1; // Standard Mean
-    ld m2; // Deviation Mean
+    ld m1{}{}; // Standard Mean
+    ld m2{}{}; // Deviation Mean
 };
 
 enum rPPGAlgorithm { g, pca, xminay };
@@ -65,7 +65,7 @@ public:
     void exit();
 
     typedef std::vector<cv::Point2f> Contour2f;
-    std::unordered_map<std::string, std::vector<ld>> z_score_thresholding(
+    static static std::unordered_map<std::string, std::vector<ld>> z_score_thresholding(
         std::vector<ld> input, int lag, 
         ld threshold, ld influence
     );

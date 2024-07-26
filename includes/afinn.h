@@ -3,12 +3,11 @@
 
 #include <unordered_map>
 #include <string>
-#include <fstream>
 
 class AFINN {
 public:
-    int getEmoji(std::string);
-    int getText(std::string);
+    int getEmoji(const std::string& emoji);
+    int getText(const std::string& text);
 private:
     std::unordered_map<std::string, int> textPolarity;
     std::unordered_map<std::string, int> emojiPolarity = {

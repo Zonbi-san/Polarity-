@@ -2,6 +2,7 @@
 #define DECISIONTREE_HPP
 
 #include <iostream>
+#include <utility>
 #include <vector>
 #include <string>
 #include <fstream>
@@ -55,8 +56,8 @@ public:
     Table initTable;
     vector<Node> tree;
 
-    DecisionTree(Table table) {
-        initTable = table;
+    explicit DecisionTree(Table table) {
+        initTable = std::move(table);
         initTable.extractAttrValue();
 
         Node root;

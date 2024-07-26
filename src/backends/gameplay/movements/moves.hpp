@@ -1,8 +1,11 @@
 #ifndef Moves_HPP
 #define Moves_HPP
-#include "backends/converter/matrix.hpp"
-#include "backends/regression.hpp"
+#include "../../regression.hpp"
 #include <vector>
+#include <opencv2/opencv.hpp>
+#include "../../converter/matrix.hpp"
+
+using namespace cv;
 
 class MovementProcessor {
     public:
@@ -17,11 +20,11 @@ class MovementProcessor {
             this->matrix.append(this->matrix, this->currentMatrix);
         }
 
-        Matrix getMatrix(void) {
+        Matrix getMatrix() {
             return this->matrix;
         }
 
-        Matrix processMatrix(void) {
+        Matrix processMatrix() {
             Regression reg;
             std::vector<float> x, y;
 
