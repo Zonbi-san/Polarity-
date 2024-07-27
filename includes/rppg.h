@@ -2,14 +2,10 @@
 #define RPPG_H
 
 #include <vector>
-#include <algorithm>
 #include <unordered_map>
 #include <cmath>
 #include <iterator>
-#include <numeric>
-#include <fstream>
 #include <string>
-#include "opencv.hpp"
 #include <opencv2/objdetect.hpp>
 #include <opencv2/dnn.hpp>
 
@@ -31,16 +27,15 @@ class VectorStats {
 public:
     VectorStats(vec_iter_ld start, vec_iter_ld end);
 
-public:
     void compute();
-    ld mean();
-    ld standardDeviation();
+    ld mean() const;
+    ld standardDeviation() const;
 
 private:
     vec_iter_ld start;
     vec_iter_ld end;
-    ld m1{}{}; // Standard Mean
-    ld m2{}{}; // Deviation Mean
+    ld m1{}; // Standard Mean
+    ld m2{}; // Deviation Mean
 };
 
 enum rPPGAlgorithm { g, pca, xminay };
@@ -48,30 +43,32 @@ enum faceDetAlgorithm { haar, deep };
 
 class RPPG {
 public:
-    RPPG(void);
+    RPPG();
 
-    bool load(
-        const rPPGAlgorithm rppga, const faceDetAlgorithm fda = deep,
-        const int width, const int height, const double timebase, 
-        const int downsample, const double samplingFrequency,
-        const double rescanFrequency, const int minSignalSize,
-        const int maxSignalSize,
-        const std::string& dnnProtoPath, const std::string& dnnModelPath
-    );
+    static std::unordered_map<std::string, std::vector<ld>> z_score_thresholding(std::vector<ld>, int, ld);
+
+    auto load(
+        rPPGAlgorithm rppga, faceDetAlgorithm fda,
+        int width, int height, double samplingFrequency,
+        double rescanFrequency, int minSignalSize,
+        int maxSignalSize,
+        const std::string &dnnProtoPath, const std::string &dnnModelPath
+    ) -> bool;
 
     int runDetection();
 
     float processFrame(cv::Mat& frameRGB, cv::Mat& frameGray, int time);
-    void exit();
+
+    static void exit();
 
     typedef std::vector<cv::Point2f> Contour2f;
-    static static std::unordered_map<std::string, std::vector<ld>> z_score_thresholding(
+    static std::unordered_map<std::string, std::vector<ld>> z_score_thresholding(
         std::vector<ld> input, int lag, 
         ld threshold, ld influence
     );
 
 private:
-    void detectFace(cv::Mat& frameRGB, cv::Mat& frameGray);
+    void detectFace(const cv::Mat &frameRGB, cv::Mat &frameGray);
     void setNearestBox(std::vector<cv::Rect> boxes);
     void detectCorners(cv::Mat& frameGray);
     void trackFace(cv::Mat& frameGray);

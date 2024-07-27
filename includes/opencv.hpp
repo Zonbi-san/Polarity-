@@ -1,7 +1,7 @@
 #ifndef opencv_hpp
 #define opencv_hpp 
 
-#include <stdio.h>
+#include <cstdio>
 #include <iostream>
 #include <limits>
 
@@ -20,7 +20,7 @@ namespace cv {
 
 
     // Optimised Functions
-    void sin(Mat &src, Mat &dst) {
+    inline void sin(Mat &src, Mat &dst) {
         CV_Assert(src.type() == CV_64F && dst.type() == CV_64F);
 
         for (int i = 0; i < src.rows; i++) {
@@ -28,7 +28,7 @@ namespace cv {
         }
     };
     
-    void cos(Mat &src, Mat &dst) {
+    inline void cos(Mat &src, Mat &dst) {
         CV_Assert(src.type() == CV_64F && dst.type() == CV_64F);
 
         for (int i = 0; i < src.rows; i++) {
@@ -36,13 +36,13 @@ namespace cv {
         }
     };
 
-    void dft(Mat &src, Mat &dst, int flags = 0) {
+    inline void dft(const Mat &src, const Mat &dst, int flags = 0) {
         CV_Assert(src.type() == CV_64F && dst.type() == CV_64F);
 
-        Mat tmp = Mat(src.rows, 1, CV_64F);
-        Mat tmp2 = Mat(src.rows, 1, CV_64F);
-        Mat tmp3 = Mat(src.rows, 1, CV_64F);
-        Mat tmp4 = Mat(src.rows, 1, CV_64F);
+        auto tmp = Mat(src.rows, 1, CV_64F);
+        auto tmp2 = Mat(src.rows, 1, CV_64F);
+        auto tmp3 = Mat(src.rows, 1, CV_64F);
+        auto tmp4 = Mat(src.rows, 1, CV_64F);
 
         for (int i = 0; i < src.cols; i++) {
             src.col(i).copyTo(tmp);
@@ -54,7 +54,7 @@ namespace cv {
     };
 
     // Common Functions
-    double getFps(cv::Mat &t, const double timeBase) {
+    inline double getFps(cv::Mat &t, const double timeBase) {
         double result;
 
         if (t.empty()) {
@@ -69,13 +69,13 @@ namespace cv {
         return result;
     };
 
-    void push(cv::Mat &m) {
+    inline void push(cv::Mat &m) {
         const int length = m.rows;
         m.rowRange(1, length).copyTo(m.rowRange(0, length - 1));
         m.pop_back();
     };
 
-    void plot(cv::Mat &mat) {
+    inline void plot(const cv::Mat &mat) {
         while (true) {
             cv::imshow("plot", mat);
             if (waitKey(30) >= 0) break;
@@ -90,9 +90,9 @@ namespace cv {
      * @param _b cv::OutputArray
      * @note This function is used to normalize the data
     */
-    void normalization(cv::InputArray _a, cv::OutputArray _b) {
+    inline void normalization(cv::InputArray _a, cv::OutputArray _b) {
         _a.getMat().copyTo(_b);
-        Mat b = _b.getMat();
+        const Mat b = _b.getMat();
         Scalar mean, stdDev;
         for (int i = 0; i < b.cols; i++) {
             meanStdDev(b.col(i), mean, stdDev);
@@ -108,8 +108,8 @@ namespace cv {
      * @param _b cv::OutputArray
      * @note This function is used to eliminate jumps
     */
-    void denoise(cv::InputArray _a, cv::InputArray _jumps, cv::OutputArray _b) {
-        Mat a = _a.getMat().clone();
+    inline void denoise(cv::InputArray _a, cv::InputArray _jumps, cv::OutputArray _b) {
+        const Mat a = _a.getMat().clone();
         Mat jumps = _jumps.getMat().clone();
 
         CV_Assert(a.type() == CV_64F && jumps.type() == CV_8U);
@@ -142,7 +142,7 @@ namespace cv {
      * @param lambda int
      * @note Advanced detrending filter based on smoothness priors approach (High pass equivalent)
     */
-    void detrend(cv::InputArray _a, cv::OutputArray _b, int lambda) {
+    inline void detrend(cv::InputArray _a, cv::OutputArray _b, int lambda) {
         Mat a = _a.getMat();
         CV_Assert(a.type() == CV_64F);
 
@@ -155,7 +155,7 @@ namespace cv {
             // Construct I
             Mat i = Mat::eye(rows, rows, a.type());
             // Construct D2
-            Mat d = Mat(Matx<double,1,3>(1, -2, 1));
+            auto d = Mat(Matx<double,1,3>(1, -2, 1));
             Mat d2Aux = Mat::ones(rows-2, 1, a.type()) * d;
             Mat d2 = Mat::zeros(rows-2, rows, a.type());
             for (int k = 0; k < 3; k++) {
@@ -176,7 +176,7 @@ namespace cv {
      * @param s int
      * @note This function is used to smooth the data (low pass equivalent)
     */
-    void movingAverage(cv::InputArray _a, cv::OutputArray _b, int n, int s) {
+    inline void movingAverage(cv::InputArray _a, cv::OutputArray _b, int n, int s) {
         CV_Assert(s > 0);
 
         _a.getMat().copyTo(_b);
@@ -184,6 +184,55 @@ namespace cv {
         for (size_t i = 0; i < n; i++) {
             cv::blur(b, b, Size(s, s));
         }
+    };
+
+    void frequencyToTime(const Mat & mat, _OutputArray b);
+
+    inline void timeToFrequency(InputArray _a, OutputArray _b, const bool magnitude) {
+        // Prepare planes
+        const Mat a = _a.getMat();
+        Mat planes[] = {cv::Mat_<float>(a), cv::Mat::zeros(a.size(), CV_32F)};
+        Mat powerSpectrum;
+        merge(planes, 2, powerSpectrum);
+
+        // Fourier transform
+        dft(powerSpectrum, powerSpectrum, DFT_COMPLEX_OUTPUT);
+
+        if (magnitude) {
+            split(powerSpectrum, planes);
+            cv::magnitude(planes[0], planes[1], planes[0]);
+            planes[0].copyTo(_b);
+        } else {
+            powerSpectrum.copyTo(_b);
+        }
+    };
+
+    inline void butterworth_lowpass_filter(const Mat & filter, const double cutoff, const int n) {
+        CV_DbgAssert(cutoff > 0 && n > 0 && filter.rows % 2 == 0 && filter.cols % 2 == 0);
+
+        auto tmp = Mat(filter.rows, filter.cols, CV_32F);
+        //Point centre = Point(filter.rows / 2, filter.cols / 2);
+
+        for (int i = 0; i < filter.rows; i++) {
+            for (int j = 0; j < filter.cols; j++) {
+                const double radius = i;
+                //radius = (double)sqrt(pow((i - centre.x), 2.0) + pow((double) (j - centre.y), 2.0));
+                tmp.at<float>(i, j) = static_cast<float>(1 / (1 + pow(radius / cutoff, 2 * n)));
+            }
+        }
+
+        const Mat toMerge[] = {tmp, tmp};
+        merge(toMerge, 2, filter);
+    };
+
+    inline void butterworth_bandpass_filter(Mat & filter, const double cutin, const double cutoff, int n) {
+        CV_DbgAssert(cutoff > 0 && cutin < cutoff && n > 0 &&
+                     filter.rows % 2 == 0 && filter.cols % 2 == 0);
+        const Mat off = filter.clone();
+        butterworth_lowpass_filter(off, cutoff, n);
+        const Mat in = filter.clone();
+        butterworth_lowpass_filter(in, cutin, n);
+        filter = off - in;
     };
 
     /**
@@ -195,15 +244,13 @@ namespace cv {
      * @param high double
      * @note This function is used to filter the data
     */
-    void bandpass(cv::InputArray _a, cv::OutputArray _b, double low, double high) {
-        Mat a = _a.getMat();
-
-        if (a.total() < 3) {
+    inline void bandpass(cv::InputArray _a, cv::OutputArray _b, double low, double high) {
+        if (const Mat a = _a.getMat(); a.total() < 3) {
             a.copyTo(_b);
         } else {
 
             // Convert to frequency domain
-            Mat frequencySpectrum = Mat(a.rows, a.cols, CV_32F);
+            auto frequencySpectrum = Mat(a.rows, a.cols, CV_32F);
             timeToFrequency(a, frequencySpectrum, false);
 
             // Make the filter
@@ -219,85 +266,13 @@ namespace cv {
     };
 
     /**
-     * @defgroup Filters butterworth_lowpass_filter
-     * @brief Butterworth lowpass filter
-     * @param filter cv::Mat
-     * @param cutoff double
-     * @param n int
-     * @note This function is used to make the filter
-    */
-    void butterworth_lowpass_filter(Mat &filter, double cutoff, int n) {
-        CV_DbgAssert(cutoff > 0 && n > 0 && filter.rows % 2 == 0 && filter.cols % 2 == 0);
-
-        Mat tmp = Mat(filter.rows, filter.cols, CV_32F);
-        //Point centre = Point(filter.rows / 2, filter.cols / 2);
-        double radius;
-
-        for (int i = 0; i < filter.rows; i++) {
-            for (int j = 0; j < filter.cols; j++) {
-                radius = i;
-                //radius = (double)sqrt(pow((i - centre.x), 2.0) + pow((double) (j - centre.y), 2.0));
-                tmp.at<float>(i, j) = (float)(1 / (1 + pow(radius / cutoff, 2 * n)));
-            }
-        }
-
-        Mat toMerge[] = {tmp, tmp};
-        merge(toMerge, 2, filter);
-    }
-
-    /**
-     * @defgroup Filters butterworth_bandpass_filter
-     * @brief Butterworth bandpass filter
-     * @param filter cv::Mat
-     * @param cutin double
-     * @param cutoff double
-     * @param n int
-     * @note This function is used to make the filter
-    */
-    void butterworth_bandpass_filter(Mat &filter, double cutin, double cutoff, int n) {
-        CV_DbgAssert(cutoff > 0 && cutin < cutoff && n > 0 &&
-                     filter.rows % 2 == 0 && filter.cols % 2 == 0);
-        Mat off = filter.clone();
-        butterworth_lowpass_filter(off, cutoff, n);
-        Mat in = filter.clone();
-        butterworth_lowpass_filter(in, cutin, n);
-        filter = off - in;
-    }
-
-    /**
-     * @defgroup Filters frequencyToTime
-     * @brief Convert frequency domain to time domain
-     * @param _a cv::InputArray
-     * @param _b cv::OutputArray
-     * @note This function is used to convert frequency domain to time domain
-    */
-    void timeToFrequency(InputArray _a, OutputArray _b, bool magnitude) {
-        // Prepare planes
-        Mat a = _a.getMat();
-        Mat planes[] = {cv::Mat_<float>(a), cv::Mat::zeros(a.size(), CV_32F)};
-        Mat powerSpectrum;
-        merge(planes, 2, powerSpectrum);
-
-        // Fourier transform
-        dft(powerSpectrum, powerSpectrum, DFT_COMPLEX_OUTPUT);
-
-        if (magnitude) {
-            split(powerSpectrum, planes);
-            cv::magnitude(planes[0], planes[1], planes[0]);
-            planes[0].copyTo(_b);
-        } else {
-            powerSpectrum.copyTo(_b);
-        }
-    }
-
-    /**
      * @defgroup Filters timeToFrequency
      * @brief Convert time domain to frequency domain
      * @param _a cv::InputArray
      * @param _b cv::OutputArray
      * @note This function is used to convert time domain to frequency domain
     */
-    void frequencyToTime(InputArray _a, OutputArray _b) {
+    inline void frequencyToTime(InputArray _a, OutputArray _b) {
         Mat a = _a.getMat();
 
         // Inverse fourier transform
@@ -306,7 +281,7 @@ namespace cv {
         // Split into planes; plane 0 is output
         Mat outputPlanes[2];
         split(a, outputPlanes);
-        Mat output = Mat(a.rows, 1, a.type());
+        auto output = Mat(a.rows, 1, a.type());
         normalize(outputPlanes[0], output, 0, 1, NORM_MINMAX);
         output.copyTo(_b);
     }
@@ -321,7 +296,7 @@ namespace cv {
      * @param high int
      * @note This function is used to perform principal component analysis
     */
-    void pcaComponent(cv::InputArray _a, cv::OutputArray _b, cv::OutputArray _pc, int low, int high) {
+    inline void pcaComponent(cv::InputArray _a, cv::OutputArray _b, cv::OutputArray _pc, int low, int high) {
         Mat a = _a.getMat();
         CV_Assert(a.type() == CV_64F);
 
@@ -356,7 +331,7 @@ namespace cv {
 
         // Select most distinct
         int idx[2];
-        cv::minMaxIdx(vals, 0, 0, 0, &idx[0]);
+        cv::minMaxIdx(vals, nullptr, nullptr, nullptr, &idx[0]);
         if (idx[0] == -1) {
             pc.col(1).copyTo(_b);
         } else {

@@ -1,7 +1,6 @@
 #pragma once
 
-#include <SDL.h>
-#include <SDL_audio.h>
+#include <SDL2/SDL_audio.h>
 
 #include <atomic>
 #include <cstdint>
@@ -14,7 +13,7 @@
 
 class audio_async {
 public:
-    audio_async(int len_ms);
+    explicit audio_async(int len_ms);
     ~audio_async();
 
     bool init(int capture_id, int sample_rate);

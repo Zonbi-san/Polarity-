@@ -37,12 +37,14 @@ function(update_deps_file deps)
     # need the content.
     include(${deps_file})
 endfunction(update_deps_file)
+set(sources ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
+update_deps_file("${sources}/src/")
 file (GLOB_RECURSE sources LIST_DIRECTORIES false *.hpp *.cpp)
-update_deps_file("${sources}/src")
 
 find_package(OpenCV REQUIRED)
 find_package(Armadillo REQUIRED)
+find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3-shared)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include )
 link_directories(${CMAKE_BINARY_DIR}/bin)
@@ -50,7 +52,8 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 
 add_executable(${PROJECT_NAME} ${sources})
 
-target_link_libraries( ${PROJECT_NAME} ${OpenCV_LIBS} ${Armadillo_LIBS})
+target_link_libraries( ${PROJECT_NAME} PRIVATE ${OpenCV_LIBS} ${Armadillo_LIBS})
+target_link_libraries(${PROJECT_NAME} PRIVATE SDL3::SDL3)
 
 # Set C++ version
 set_target_properties(${PROJECT_NAME} PROPERTIES

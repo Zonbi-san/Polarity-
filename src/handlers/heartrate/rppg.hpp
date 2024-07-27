@@ -102,9 +102,8 @@ inline RPPG::RPPG(): rppga(), fda(), maxSignalSize(0), minSignalSize(0), rescanF
 }
 
 inline bool RPPG::load(
-    const rPPGAlgorithm rppga, const faceDetAlgorithm fda = deep,
-    const int width, const int height, const double timebase,
-    const int downsample, const double samplingFrequency,
+    const rPPGAlgorithm rppga, const faceDetAlgorithm fda,
+    const int width, const int height, const double samplingFrequency,
     const double rescanFrequency, const int minSignalSize,
     const int maxSignalSize,
     const std::string& dnnProtoPath, const std::string& dnnModelPath
@@ -268,11 +267,11 @@ inline void RPPG::exit() {
  */
 inline unordered_map<string, vector<ld>> RPPG::z_score_thresholding(
     vector<ld> input, int lag,
-    ld threshold,  ld influence
+    ld threshold
 ) {
     unordered_map<string, vector<ld>> output;
 
-    uint n = (uint)(input.size());
+    const uint n = static_cast<uint>(input.size());
     vector<ld> signals(input.size());
     vector<ld> filtered_input(input.begin(), input.end());
     vector<ld> filtered_mean(input.size());
@@ -293,12 +292,12 @@ inline unordered_map<string, vector<ld>> RPPG::z_score_thresholding(
             filtered_input[i] = input[i];
         }
 
-        VectorStats lag_subvector_stats(
+        VectorStats lag_subvector_stats_(
             filtered_input.begin() + (i - lag),
             filtered_input.begin() + i
         );
-        filtered_mean[i] = lag_subvector_stats.mean();
-        filtered_stddev[i] = lag_subvector_stats.standardDeviation();
+        filtered_mean[i] = lag_subvector_stats_.mean();
+        filtered_stddev[i] = lag_subvector_stats_.standardDeviation();
     }
 
     output["signals"] = signals;
