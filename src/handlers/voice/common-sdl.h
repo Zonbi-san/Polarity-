@@ -25,7 +25,7 @@ public:
     bool clear();
 
     // callback to be called by SDL
-    void callback(uint8_t * stream, int len);
+    void callback(const uint8_t * stream, int len);
 
     // get audio data from the circular buffer
     void get(int ms, std::vector<float> & audio);

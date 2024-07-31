@@ -4,7 +4,7 @@
 #include <random>
 #include "../utils.h"
 
-template<class NetworkType, class ActivationLossConfig, class ProgressEvaluator>
+template<class NetworkType, class ActivationLossConfig>
 class NetworkTrainer {
     public:
         NetworkTrainer(
@@ -105,7 +105,7 @@ class NetworkTrainer {
 
                 BehaviourList predict(num_test_exs);
 
-#pragma omp parallel for
+                #pragma omp parallel for
                 for (int i = 0; i < num_test_exs; i++) {
                     std::unique_ptr<arma::mat> tmp_ouputs;
                     std::unique_ptr<arma::mat> tmp_ptr_a;

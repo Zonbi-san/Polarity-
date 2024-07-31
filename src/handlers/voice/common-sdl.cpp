@@ -1,6 +1,10 @@
 #ifndef COMMON_SDL_HPP
 #define COMMON_SDL_HPP
 
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_audio.h>
+#include <SDL2/SDL_log.h>
+
 #include "./common-sdl.h"
 
 audio_async::audio_async(int len_ms) {
@@ -44,7 +48,7 @@ bool audio_async::init(int capture_id, int sample_rate) {
     capture_spec_requested.channels = 1;
     capture_spec_requested.samples  = 1024;
     capture_spec_requested.callback = [](void * userdata, uint8_t * stream, int len) {
-        audio_async * audio = (audio_async *) userdata;
+        auto * audio = static_cast<audio_async *>(userdata);
         audio->callback(stream, len);
     };
     capture_spec_requested.userdata = this;
@@ -137,7 +141,7 @@ bool audio_async::clear() {
 }
 
 // callback to be called by SDL
-void audio_async::callback(uint8_t * stream, int len) {
+void audio_async::callback(const uint8_t * stream, int len) {
     if (!m_running) {
         return;
     }
@@ -250,7 +254,7 @@ bool sdl_poll_events() {
             case SDL_QUIT:
                 {
                     return false;
-                } break;
+                }
             default:
                 break;
         }
