@@ -24,3 +24,4 @@ Write-host "$CMAKE_GENERATOR_OPTIONS"
 Write-host "$P_REPO_LOCATION" #for verification purposes
 
 cmake "$CMAKE_GENERATOR_OPTIONS" "$CMAKE_OPTIONS" -DOPENCV_EXTRA_MODULES_PATH=../opencv_contrib/opencv_contrib-4.x/modules -DCMAKE_INSTALL_PREFIX="$P_REPO_LOCATION/opencv" "../opencv/opencv-4.x"
+cmake --build .  --target install --config release
