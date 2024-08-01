@@ -1,0 +1,10 @@
+New-Item -ItemType Directory -Path ./build
+set-location ./build
+
+$CMAKE_OPTIONS = (-DBUILD_PERF_TESTS:BOOL=OFF -DBUILD_TESTS:BOOL=OFF -DBUILD_DOCS:BOOL=OFF  -DWITH_CUDA:BOOL=OFF -DBUILD_EXAMPLES:BOOL=OFF -DINSTALL_CREATE_DISTRIB=ON)
+$CMAKE_GENERATOR_OPTIONS = (-G"Visual Studio 17 2022" -A x64)
+$REPO_LOCATION = C:\Users\ourpc\CLionProjects\Polarity-
+
+Set-Variable -x
+
+cmake "$CMAKE_GENERATOR_OPTIONS" "$CMAKE_OPTIONS" -DOPENCV_EXTRA_MODULES_PATH=../opencv_contrib/opencv_contrib-4.x/modules -DCMAKE_INSTALL_PREFIX="$REPO_LOCATION"/install/opencv
