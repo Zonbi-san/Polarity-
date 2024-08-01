@@ -14,10 +14,13 @@ This project is a combination of facial emotion recognition (FER), sentiment ana
 - Integration with NLP/LLM engine games: Allows developers to incorporate the system into their games to create more immersive and dynamic gaming experiences.
 
 ## Installation:
+- Linux installation
 1. Clone the repository: `git clone https://github.com/Ashthetik/Polarity-.git`
-2. run **BOTH** the installers in `installers/` (linux only)
+2. run **BOTH** the installers in `installers/`
 3. create a `build/` directory and run `cmake ..`
 4. now `make -j $nproc` or `ninja` 
+- Windows installation 
+  + unfinished for now but opencv install script is done
 
 > [!IMPORTANT]
 > Please note, this won't actually run yet, so please don't open an issue regarding it not running.
