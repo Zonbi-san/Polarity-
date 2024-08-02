@@ -1,6 +1,6 @@
 #winget install Microsoft.VisualStudio.2022.BuildTools Kitware.CMake Git.Git
 
-#git clone https://gitlab.com/conradsnicta/armadillo-code.git
+git clone https://gitlab.com/conradsnicta/armadillo-code.git
 
 cd ../
 
