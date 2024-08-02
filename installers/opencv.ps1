@@ -1,5 +1,5 @@
 # Invoke-WebRequest -Uri https://github.com/microsoft/winget-cli/releases/download/v1.3.2691/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle -OutFile .\MicrosoftDesktopAppInstaller_8wekyb3d8bbwe.msixbundle
-winget install Microsoft.VisualStudio.2022.BuildTools #make sure to also select desktop developement with C++
+winget install Microsoft.VisualStudio.2022.BuildTools Kitware.CMake #make sure to also select desktop developement with C++
 # uncomment the first line if you dont have winget installed for some reason
 
 wget -O opencv_contrib.zip https://github.com/opencv/opencv_contrib/archive/4.x.zip
@@ -12,7 +12,7 @@ cd ../
 $P_REPO_LOCATION = Get-Location
 
 New-Item -ItemType Directory -Path ./installers/build
-set-location ./installers/build
+cd ./installers/build
 
 
 $CMAKE_OPTIONS = '-DBUILD_PERF_TESTS:BOOL=OFF -DBUILD_TESTS:BOOL=OFF -DBUILD_DOCS:BOOL=OFF  -DWITH_CUDA:BOOL=OFF -DBUILD_EXAMPLES:BOOL=OFF -DINSTALL_CREATE_DISTRIB=ON'
